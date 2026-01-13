@@ -55,7 +55,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gglin001/vscode-mlir.git"
+    "url": "https://github.com/gglin001/vscode-mlir-custom.git"
   },
   "contributes": {
     "customEditors": [
