@@ -159,7 +159,6 @@ export class MLIRContext implements vscode.Disposable {
     );
 
     additionalServerArgs.push("--log=verbose");
-    // additionalServerArgs.push("--import-all-index");
   }
 
   /**
@@ -385,11 +384,14 @@ export class MLIRContext implements vscode.Disposable {
     defaultPath: string,
     workspaceFolder: vscode.WorkspaceFolder,
   ): Promise<string> {
+    filePath = filePath || '';
     const configPath = filePath;
+
+    filePath = this.expandWorkspaceFolderPath(filePath, workspaceFolder);
 
     // If the path is already fully resolved, there is nothing to do.
     if (path.isAbsolute(filePath)) {
-      return filePath;
+      return path.resolve(filePath);
     }
 
     // If a path hasn't been set, try to use the default path.
@@ -400,6 +402,12 @@ export class MLIRContext implements vscode.Disposable {
       filePath = defaultPath;
 
       // Fallthrough to try resolving the default path.
+    }
+
+    const hasPathSeparator = filePath.includes(path.sep) ||
+                             filePath.includes('/') || filePath.includes('\\');
+    if (workspaceFolder && hasPathSeparator) {
+      return path.resolve(workspaceFolder.uri.fsPath, filePath);
     }
 
     // Try to resolve the path relative to the workspace.
@@ -415,6 +423,21 @@ export class MLIRContext implements vscode.Disposable {
     }
     // Otherwise, return the resolved path.
     return foundUris[0].fsPath;
+  }
+
+  /**
+   * Expand ${workspaceFolder} in a config path when a workspace folder exists.
+   */
+  expandWorkspaceFolderPath(filePath: string,
+                            workspaceFolder: vscode.WorkspaceFolder): string {
+    if (!workspaceFolder || filePath === '') {
+      return filePath;
+    }
+    if (!filePath.includes('${workspaceFolder}')) {
+      return filePath;
+    }
+    return filePath.replace(/\$\{workspaceFolder\}/g,
+                            () => workspaceFolder.uri.fsPath);
   }
 
   /**

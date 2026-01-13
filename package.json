@@ -2,7 +2,7 @@
   "name": "vscode-mlir-custom",
   "displayName": "MLIR-custom",
   "description": "MLIR Language Extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "gglin001-vscode",
   "homepage": "https://mlir.llvm.org/",
   "icon": "icon.png",

@@ -1,5 +1,20 @@
 # MLIR
 
+> **Notice:** This repository is a customized build of the upstream MLIR VS Code
+> extension. Differences include the default `--log=verbose` launch flag and
+> the `mlir.server_path` configuration example below.
+
+The extension launches `mlir-lsp-server` with `--log=verbose` by default. You
+can also set the server path in your VS Code settings, for example:
+
+```json
+{
+  "mlir.server_path": "${workspaceFolder}/build/bin/mlir-lsp-server"
+}
+```
+
+---
+
 Provides language IDE features for [MLIR](https://mlir.llvm.org/) related
 languages: [MLIR](#mlir---mlir-textual-assembly-format),
 [PDLL](#pdll---mlir-pdll-pattern-files), and [TableGen](#td---tablegen-files)
@@ -311,4 +326,3 @@ extra setup steps are required:
 
 Please follow the existing code style when contributing to the extension, we
 recommend to run `npm run format` before sending a patch.
-
