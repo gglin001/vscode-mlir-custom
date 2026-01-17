@@ -1,15 +1,15 @@
 # MLIR
 
 > **Notice:** This repository is a customized build of the upstream MLIR VS Code
-> extension. Differences include the default `--log=verbose` launch flag and
-> the `mlir.server_path` configuration example below.
+> extension.
 
-The extension launches `mlir-lsp-server` with `--log=verbose` by default. You
-can also set the server path in your VS Code settings, for example:
+Supported `settings.json`
 
-```json
+```jsonc
 {
-  "mlir.server_path": "${workspaceFolder}/build/bin/mlir-lsp-server"
+  "mlir.log": "verbose",
+  "mlir.server_path": "${workspaceFolder}/build/bin/mlir-lsp-server",
+  "mlir.tablegen_server_path": "${workspaceFolder}/build/bin/tblgen-lsp-server",
 }
 ```
 

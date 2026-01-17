@@ -2,7 +2,7 @@
   "name": "vscode-mlir-custom",
   "displayName": "MLIR-custom",
   "description": "MLIR Language Extension",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "gglin001-vscode",
   "homepage": "https://mlir.llvm.org/",
   "icon": "icon.png",
@@ -177,6 +177,17 @@
           "scope": "resource",
           "type": "array",
           "description": "A list of `tablegen_compile_commands.yml` database files containing information about .td files processed by the server."
+        },
+        "mlir.log": {
+          "scope": "resource",
+          "type": "string",
+          "default": "error",
+          "enum": [
+            "error",
+            "info",
+            "verbose"
+          ],
+          "description": "Logging level for MLIR language servers. Passed as --log=<level>."
         },
         "mlir.onSettingsChanged": {
           "type": "string",

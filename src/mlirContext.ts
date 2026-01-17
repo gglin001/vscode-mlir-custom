@@ -157,8 +157,6 @@ export class MLIRContext implements vscode.Disposable {
         (database) => `--${languageName}-compilation-database=${database}`,
       ),
     );
-
-    additionalServerArgs.push("--log=verbose");
   }
 
   /**
@@ -228,9 +226,13 @@ export class MLIRContext implements vscode.Disposable {
         filepathsToWatch,
         additionalServerArgs,
       );
-    } else if (languageName == "mlir") {
-      additionalServerArgs.push("--log=verbose");
     }
+
+    const logLevel = this.normalizeLogLevel(
+      config.get<string>("log", workspaceFolder, "error"),
+    );
+    additionalServerArgs.push(`--log=${logLevel}`);
+    configsToWatch.push("log");
 
     // Try to activate the language client.
     const [server, serverPath] = await this.startLanguageClient(
@@ -272,6 +274,11 @@ export class MLIRContext implements vscode.Disposable {
     var serverPath = await this.resolveServerPath(
       serverSettingName,
       workspaceFolder,
+    );
+    const resolvedPathLabel =
+      serverPath === "" ? "(not configured)" : serverPath;
+    outputChannel.appendLine(
+      `${clientTitle}: resolved ${serverSettingName} = ${resolvedPathLabel}`,
     );
 
     // If the server path is empty, bail. We don't emit errors if the user
@@ -384,7 +391,7 @@ export class MLIRContext implements vscode.Disposable {
     defaultPath: string,
     workspaceFolder: vscode.WorkspaceFolder,
   ): Promise<string> {
-    filePath = filePath || '';
+    filePath = filePath || "";
     const configPath = filePath;
 
     filePath = this.expandWorkspaceFolderPath(filePath, workspaceFolder);
@@ -404,8 +411,10 @@ export class MLIRContext implements vscode.Disposable {
       // Fallthrough to try resolving the default path.
     }
 
-    const hasPathSeparator = filePath.includes(path.sep) ||
-                             filePath.includes('/') || filePath.includes('\\');
+    const hasPathSeparator =
+      filePath.includes(path.sep) ||
+      filePath.includes("/") ||
+      filePath.includes("\\");
     if (workspaceFolder && hasPathSeparator) {
       return path.resolve(workspaceFolder.uri.fsPath, filePath);
     }
@@ -428,16 +437,63 @@ export class MLIRContext implements vscode.Disposable {
   /**
    * Expand ${workspaceFolder} in a config path when a workspace folder exists.
    */
-  expandWorkspaceFolderPath(filePath: string,
-                            workspaceFolder: vscode.WorkspaceFolder): string {
-    if (!workspaceFolder || filePath === '') {
+  expandWorkspaceFolderPath(
+    filePath: string,
+    workspaceFolder: vscode.WorkspaceFolder,
+  ): string {
+    if (filePath === "") {
       return filePath;
     }
-    if (!filePath.includes('${workspaceFolder}')) {
+    if (!filePath.includes("${workspaceFolder")) {
       return filePath;
     }
-    return filePath.replace(/\$\{workspaceFolder\}/g,
-                            () => workspaceFolder.uri.fsPath);
+    return filePath.replace(
+      /\$\{workspaceFolder(?::([^}]+))?\}/g,
+      (match, folderName) => {
+        const resolvedFolder = this.resolveWorkspaceFolderVariable(
+          workspaceFolder,
+          folderName,
+        );
+        return resolvedFolder ? resolvedFolder.uri.fsPath : match;
+      },
+    );
+  }
+
+  /**
+   * Resolve a workspace folder variable to a folder, when possible.
+   */
+  resolveWorkspaceFolderVariable(
+    workspaceFolder: vscode.WorkspaceFolder,
+    folderName?: string,
+  ): vscode.WorkspaceFolder | null {
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    if (folderName) {
+      return (
+        folders.find((folder) => folder.name === folderName) ??
+        folders.find(
+          (folder) => path.basename(folder.uri.fsPath) === folderName,
+        ) ??
+        null
+      );
+    }
+    if (workspaceFolder) {
+      return workspaceFolder;
+    }
+    return folders.length === 1 ? folders[0] : null;
+  }
+
+  /**
+   * Normalize the log level setting for language servers.
+   */
+  normalizeLogLevel(logLevel: string): string {
+    switch ((logLevel || "").toLowerCase()) {
+      case "info":
+      case "verbose":
+        return logLevel.toLowerCase();
+      case "error":
+      default:
+        return "error";
+    }
   }
 
   /**
